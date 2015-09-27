@@ -1,0 +1,60 @@
+<html>
+<head>
+#include "../style.css"
+<title>各个产品 PageView 分析及其网络范围分布</title>
+<meta http-equiv="Content-Type" content="text/html; charset=gb2312">
+</head>
+
+<body bgcolor="#FFFFFF">
+
+<center>
+  <table>
+    <tr bordercolor="606000"> 
+      <td>&nbsp; </td>
+    </tr>
+    <tr> 
+      <td> 
+<!----> 
+#include "../hash.phtml" 
+<!----> 
+#include "../header.inc" 
+<!----> 
+<?
+$now_string = strftime "%Y-%m-%d", localtime;      
+@now_string = split("-", $now_string) ;
+my $day_year;my $day_month;my $day_day;
+my $month_year;my $month_month;
+my $year_year ;
+$day_year = $month_year = $year_year = $now_string[0] ;
+$day_month = $month_month = $now_string[1] ;
+$day_day = $now_string[2] ;
+!>
+<!----> 
+#include "query.phtml" 
+<!----> 
+#include "old_day.phtml" ;
+<!----> 
+<p>
+<!----> 
+#if ( $remote_user eq 'logadm' )
+#include "old_month.phtml" ;
+#endif
+<!----> 
+<p>
+<!----> 
+#if ( $remote_user eq 'logadm' )
+#include "old_year.phtml" ;
+#endif
+<!----> 
+<p>
+<!----> 
+#include "query.phtml" 
+<!----> 
+#include "../footer.inc" 
+<!----> 
+      </td>
+    </tr>
+  </table>
+</center>
+</body>
+</html>

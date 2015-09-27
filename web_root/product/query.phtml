@@ -1,0 +1,24 @@
+<form method="post" action="/product/query_result.phtml">
+<input type='checkbox' name='use_filter' <?=$use_filter?"checked":""!>>
+只查看
+<select size=1 name=filter style="font-size:9pt;width=98">
+
+<?foreach $tmp ( values %Host2Name ){!>
+<option value="<?=$tmp!>" <?=(($filter eq $tmp)?selected:"")!>><?=$tmp!></option>
+<?}!>
+
+</select>
+
+产品的PageView<p>
+
+
+    查看 
+            <input type="text" name="year" size="5" value=<?=$day_year!>>
+    年 
+    <input type="text" name="month" size="3" value=<?=$day_month!>>
+    月 
+    <input type="text" name="day" size="3" value=<?=$day_day!>>
+    网站 PageView 信息
+    <input type="submit" name="Submit" value="走~~">
+  </p>
+</form>

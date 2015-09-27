@@ -1,0 +1,84 @@
+<!-- online_user/day.phtml started -->
+<?
+my $sth ;
+
+%prod_user_counter = () ;
+%all_users = () ;
+%avg_users = () ;
+
+$sth = $dbh_log->prepare ( <<_SQL_ )  or die "prepare in day.phtml error!" ;
+select type,MONTH(FROM_UNIXTIME(unixtime)) as month ,avg(online_num) from online_user_tb 
+where unixtime >= UNIX_TIMESTAMP('$day_year-1-1') 
+and unixtime < UNIX_TIMESTAMP(DATE_ADD('$day_year-1-1',INTERVAL 1 YEAR))
+group by month
+_SQL_
+$sth->execute or die "execute error in day.phtml" ;
+
+my $month;my $product ;
+my %prod_user_counter; 
+my $all_users ;my $avg_users ;
+$all_users = 0 ;
+while ( ($product,$month,$tmp)=$sth->fetchrow_array )
+{
+	$prod_user_counter{$month}{$product} = $tmp ;
+	$all_users{$product} += $tmp ;
+}
+foreach $product ( keys %all_users ){
+	$avg_users{$product} = $all_users{$product}/(keys %prod_user_counter) ;
+}
+
+$sth->finish ;
+!>
+
+<table border=0 dwcopytype="CopyTableRow" cellpadding="0" cellspacing="0">
+  <tr> 
+    <td> 
+      <table border=1 cellspacing="0" cellpadding="0" bordercolor=606000>
+        <tr> 
+          <td> 
+            <table bgcolor=f0f0e0 class=small width=620 cellspacing=0 cellpedding=0 border=0>
+              <tr> 
+                <td colspan=2 bgcolor=606000><i><b><font size=+1 color=ffe080>1. 
+                  </font></b></i><font color=ffffff>在 线 用 户 每 年 统 计 
+                  ( <?=$day_year!> 年 )</font>
+<?foreach $product ( keys %all_users ){next if ( $use_filter && $filter ne $Online{$product} ) ;!>	
+<br><font color=red><?=$Online{$product}!> 平 均 <?=int($avg_users{$product})!> 人 </font> 
+<?}!>
+	</td></tr>
+
+
+<!-- foreach started -->
+<?
+ my $bgcolor='fffff8' ;
+foreach $month ( reverse sort {$a<=>$b} keys %prod_user_counter )
+{
+!>
+              <tr bgcolor=<?=$bgcolor!>> 
+                <td align=right> <?=$month!> 月: </td>
+                <td>
+	<? foreach $product ( keys %{$prod_user_counter{$month}} ){ next if ( $use_filter && $filter ne $Online{$product} ) ;!>
+<img src=/images/bar3.gif width=<?=int(1+($all_users{$product}==0?0:($bar_length*($prod_user_counter{$month}{$product}/$all_users{$product}))))!> height=7>
+<font color=208000><?=int($prod_user_counter{$month}{$product})!>人 [<?=$Online{$product}!>]</font>
+<font color=ff0000><?=substr($avg_users{$product}==0?0:(100*$prod_user_counter{$month}{$product}/$all_users{$product}),0,4)!>%</font><br>
+	<?}!>
+
+	</td></tr>
+		<? if ($bgcolor eq 'fffff8'){
+				$bgcolor='f0f0e0' ;
+			}else{
+				$bgcolor='fffff8' ;
+			}
+
+}
+!>
+<!-- foreach ended -->
+
+            </table>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+
+<!-- user/day.phtml ended -->

@@ -1,0 +1,64 @@
+<!-- user/year.phtml started -->
+<?
+my $sth ;
+my $next_year ;
+#$next_year = $year_year +1 ;
+
+$sth = $dbh->prepare( <<_SQL_ ) or die "prepare in day.phtml error!" ;
+select MONTH(FROM_UNIXTIME(ctime)) as month ,count(*) from UserInfo 
+where ctime >= UNIX_TIMESTAMP( '$year_year-01-01' ) and
+ctime < UNIX_TIMESTAMP( DATE_ADD('$year_year-01-01',INTERVAL 1 YEAR) )
+group by month
+order by month desc
+_SQL_
+
+$sth->execute() or die "error in year.phtml" ;
+
+my $month;
+my %user_counter; 
+my $all_users ;
+
+$all_users = 0 ;
+while ( ($month,$tmp)=$sth->fetchrow_array )
+{
+	$user_counter{$month} = $tmp ;
+	$all_users += $user_counter{$month} ;
+}
+$sth->finish ;
+!>
+
+<table border=1 cellspacing="0" cellpadding="0" bordercolor=606000>
+                  <tr> 
+                    <td> 
+                      <table bgcolor=f0f0e0 class=small width=620 cellspacing=0 cellpedding=0 border=0>
+                        <tr> 
+                          <td colspan=2 bgcolor=606000><i><b><font size=+1 color=ffe080>3. 
+                            </font></b></i> <font color=ffffff> 年 注 册 新 用 户 每 月 增 量 <font color=red>总共<?=$all_users!>人</font>
+( <?=$year_year!> 年 )</font></td>
+                        </tr>
+<!-- foreach started -->
+<?
+my $bgcolor='fffff8';
+foreach $month ( reverse sort {$a<=>$b} keys %user_counter )
+{
+!>
+                        <tr bgcolor=<?=$bgcolor!>> 
+                          <td> <?=$month!> 月 </td>
+                          <td>
+<img src=/images/bar3.gif width=<?=int(1+($all_users==0?0:($bar_length*($user_counter{$month}/$all_users))))!> height=7><font color=208000> 
+<?=$user_counter{$month}!></font> 
+<font color=ff0000><?=substr($all_users==0?0:(100*$user_counter{$month}/$all_users),0,4)!>%</font></td>
+                        </tr>
+		<? if ($bgcolor eq 'fffff8'){
+				$bgcolor='f0f0e0' ;
+			}else{
+				$bgcolor='fffff8' ;
+			}
+}
+!>
+<!-- foreach ended -->
+                      </table>
+                    </td>
+                  </tr>
+                </table>
+<!-- user/year.phtml ended -->

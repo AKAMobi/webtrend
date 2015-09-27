@@ -1,0 +1,192 @@
+<?
+# predefined vars
+
+# bar length
+$bar_length = 500 ;
+
+#惚略的 mini pageview 和倍数
+#$mini_pageview = 100 ;
+$mini_pageview = 10 ;
+$XminiMonth = 10 ;
+$XminiYear = 100 ;
+
+#忽略统计的 User数
+$mini_user = 2 ;
+
+# 网络到中文名
+my %Net2Name ;
+$Net2Name{"202.106"} = "电信163网" ;
+$Net2Name{"10.9"} = "内部居域网" ;
+$Net2Name{"166.111"} = "清华大学" ;
+$Net2Name{"162.105"} = "北京大学" ;
+$Net2Name{"159.226"} = "中科院" ;
+$Net2Name{"202.112"} = "CerNet其他地区" ;
+$Net2Name{"202.113"} = "河北天津地区" ;
+$Net2Name{"202.114"} = "湖北地区" ;
+$Net2Name{"202.115"} = "四川地区" ;
+$Net2Name{"202.116"} = "广东地区" ;
+$Net2Name{"202.117"} = "陕西地区" ;
+$Net2Name{"202.118"} = "东北地区" ;
+$Net2Name{"202.119"} = "江苏地区" ;
+$Net2Name{"202.120"} = "上海地区" ;
+$Net2Name{"202.121"} = "上海杭州福建" ;
+$Net2Name{"202.192"} = "广东地区" ;
+$Net2Name{"202.193"} = "广西地区" ;
+$Net2Name{"202.194"} = "山东地区" ;
+$Net2Name{"202.195"} = "江苏地区" ;
+$Net2Name{"202.196"} = "河南地区" ;
+$Net2Name{"202.197"} = "湖南地区" ;
+$Net2Name{"202.198"} = "吉林黑龙江" ;
+$Net2Name{"202.199"} = "沈阳地区" ;
+$Net2Name{"202.200"} = "西安地区" ;
+$Net2Name{"202.201"} = "新疆甘肃宁夏" ;
+$Net2Name{"202.202"} = "四川地区" ;
+$Net2Name{"202.203"} = "云南地区" ;
+$Net2Name{"202.204"} = "北京高校" ;
+$Net2Name{"202.205"} = "国家教育信息中心" ;
+$Net2Name{"202.206"} = "河北地区" ;
+$Net2Name{"202.207"} = "内蒙山西" ;
+$Net2Name{"210.39"} = "深圳地区" ;
+
+
+# 在线用户
+my %Online; 
+$Online{'www'}	= '社区' ;
+$Online{'game'}	= '游戏' ;
+
+# 虚拟主机到产品名
+my %Host2Name ;
+$Host2Name{"search"}	= '搜索引擎' ;
+$Host2Name{"card"}	= '绿色贺卡' ;
+$Host2Name{"login"}	= "登陆" ;
+$Host2Name{"feedback"}	= "反馈" ;
+$Host2Name{"pets"}	= "宠物" ;
+$Host2Name{"webtrend"}	= "Web分析" ;
+$Host2Name{"www"} 	= "首页" ;
+$Host2Name{"bbs"} = 	"讨论区" ;
+$Host2Name{"news"} 	= "新闻" ;
+$Host2Name{"chat"} 	= "聊天室" ;
+$Host2Name{"pager"} 	= "呼叫器" ;
+$Host2Name{"ad"} = "广告" ;
+$Host2Name{"address"} = "地址簿" ;
+$Host2Name{"album"} = "像册" ;
+$Host2Name{"alumni"} = "校友录" ;
+$Host2Name{"calendar"} = "日历" ;
+$Host2Name{"express"} = "特快" ;
+$Host2Name{"group"} = "兴趣小组" ;
+$Host2Name{"help"} = "帮助" ;
+$Host2Name{"home"} = "个人主页" ;
+$Host2Name{"homepage"} = "个人主页目录" ;
+$Host2Name{"hosting"} = "主页大巴" ;
+$Host2Name{"profile"} = "个人信息" ;
+$Host2Name{"wwwbbs"} = "个人 BBS" ;
+$Host2Name{"message"} = "站内留言" ;
+$Host2Name{"mail"} = "电子邮件" ;
+$Host2Name{"game"} = "在线游戏" ;
+$Host2Name{"channel"} = "频道" ;
+$Host2Name{""} = "未知产品" ;
+
+foreach ( keys %Host2Name ){
+	$Name2Host{$Host2Name{$_}} = $_ ;
+}
+
+# user level settings
+@all_page=(
+	'/' ,
+	'/complex/complex.phtml',
+	'/ip_list/ip_list.phtml',
+	'/ip_product/ip_product.phtml',
+	'/online_userser/online_user.phtml',
+	'/product/product.phtml',
+	'/product/query_result.phtml',
+	'/session/session.phtml',
+	'/user/user.phtml'
+	) ;
+$history_permit{'logadm'}=3 ;
+$regexp_product{'logadm'} = '.' ;
+
+$history_permit{'zixia'}=999999;
+$regexp_product{'zixia'}='.' ;
+@{$allow_page{'zixia'}}=(
+	'/' ,
+	'/complex/complex.phtml',
+	'/complex/query_result.phtml',
+	'/ip_list/ip_list.phtml',
+	'/ip_product/ip_product.phtml',
+	'/online_userser/online_user.phtml',
+	'/product/product.phtml',
+	'/product/query_result.phtml',
+	'/session/session.phtml',
+	'/user/user.phtml'
+	) ;
+
+$history_permit{'all'}=7 ;
+$regexp_product{'all'}='.' ;
+@{$allow_page{'all'}}=(
+	'/' ,
+	'/complex/complex.phtml',
+	'/ip_product/ip_product.phtml',
+	'/product/product.phtml',
+	'/product/query_result.phtml',
+	'/session/session.phtml',
+	) ;
+$history_permit{'reguser'}=7 ;
+$regexp_product{'reguser'}='.' ;
+@{$allow_page{'reguser'}}=(
+	'/' ,
+	'/ip_list/ip_list.phtml',
+	'/online_userser/online_user.phtml',
+	'/session/session.phtml',
+	'/user/user.phtml'
+	) ;
+$history_permit{'news'}=7 ;
+$regexp_product{'news'}='^news$' ;
+@{$allow_page{'news'}}=(
+	'/' ,
+	'/product/product.phtml',
+	'/product/query_result.phtml',
+	) ;
+$history_permit{'channel'}=7 ;
+$regexp_product{'channel'}='^channel$' ;
+@{$allow_page{'channel'}}=(
+	'/' ,
+	'/product/product.phtml',
+	'/product/query_result.phtml',
+	) ;
+$history_permit{'game'}=7 ;
+$regexp_product{'game'}='^game$' ;
+@{$allow_page{'game'}}=(
+	'/' ,
+	'/product/product.phtml',
+	'/product/query_result.phtml',
+	) ;
+$history_permit{'chat'}=7 ;
+$regexp_product{'chat'}='^chat$' ;
+@{$allow_page{'chat'}}=(
+	'/' ,
+	'/product/product.phtml',
+	'/product/query_result.phtml',
+	) ;
+$history_permit{'hosting'}=7 ;
+$regexp_product{'hosting'}='^hosting$' ;
+@{$allow_page{'hosting'}}=(
+	'/' ,
+	'/product/product.phtml',
+	'/product/query_result.phtml',
+	) ;
+$history_permit{'mail'}=7 ;
+$regexp_product{'mail'}='^mail$' ;
+@{$allow_page{'mail'}}=(
+	'/' ,
+	'/product/product.phtml',
+	'/product/query_result.phtml',
+	) ;
+$history_permit{'bbs'}=7 ;
+$regexp_product{'bbs'}='[^news|channel|game|chat|hosting|mail]' ;
+@{$allow_page{'bbs'}}=(
+	'/' ,
+	'/product/product.phtml',
+	'/product/query_result.phtml',
+	) ;
+!>
+

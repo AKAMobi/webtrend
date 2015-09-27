@@ -1,0 +1,70 @@
+<!-- ip_list/year.phtml started -->
+<?
+my $sth ;
+my $next_year ;
+#$next_year = $year_year +1 ;
+
+$sth = $dbh->prepare( <<_SQL_ ) or die "prepare in ip_list/year.phtml error!" ;
+select SUBSTRING_INDEX(uip, '.', 2) as net, count(*) FROM UserInfo
+where ctime >= UNIX_TIMESTAMP( '$year_year-01-01' ) and
+ctime < UNIX_TIMESTAMP( DATE_ADD('$year_year-01-01',INTERVAL 1 YEAR) )
+group by net
+_SQL_
+
+$sth->execute() or die "error in ip_list/year.phtml" ;
+
+my $net;
+my %user_counter; 
+my $all_users ;
+
+$all_users = 0 ;
+while ( ($net,$tmp)=$sth->fetchrow_array )
+{
+	$user_counter{$net} = $tmp ;
+	$all_users += $user_counter{$net} ;
+}
+$sth->finish ;
+!>
+
+<table border=1 cellspacing="0" cellpadding="0" bordercolor=606000>
+                  <tr> 
+                    <td> 
+                      <table bgcolor=f0f0e0 class=small width=620 cellspacing=0 cellpedding=0 border=0>
+  <tr> 
+                  <td colspan=2 bgcolor=606000><i><b><font size=+1
+color=ffe080>3. 
+                    </font></b></i><font color=ffffff>年 注 册 用 户 网 段 分
+布 列 表 ( <?=$year_year!>年 )</font><font color=red> <?=$all_users!>人 </font> </td>
+        </tr>
+        <tr bgcolor=e0e0e0> 
+          <td>网段</td>
+          <td>用户数目</td>
+        </tr>
+        <tr> 
+<!-- foreach started -->
+<?
+my $bgcolor='fffff8';
+foreach $net ( reverse sort {$user_counter{$a}<=>$user_counter{$b}} keys %user_counter )
+{
+next if ( $user_counter{$net}<($mini_user*$XminiYear)) ;
+!>
+                        <tr bgcolor=<?=$bgcolor!>> 
+                          <td align=right><?=$Net2Name{$net}!>[<?=$net!>.x.x]: </td>
+                          <td>
+<img src=/images/bar3.gif width=<?=int(1+($all_users==0?0:($bar_length*($user_counter{$net}/$all_users))))!> height=7><font color=208000> 
+<?=$user_counter{$net}!></font> 
+<font color=ff0000><?=substr($all_users==0?0:($user_counter{$net}*100/$all_users),0,4)!>%</font></td>
+                        </tr>
+		<? if ($bgcolor eq 'fffff8'){
+				$bgcolor='f0f0e0' ;
+			}else{
+				$bgcolor='fffff8' ;
+			}
+}
+!>
+<!-- foreach ended -->
+                      </table>
+                    </td>
+                  </tr>
+                </table>
+<!-- ip_list/year.phtml ended -->

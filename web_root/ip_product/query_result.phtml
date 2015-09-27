@@ -1,0 +1,72 @@
+<html> 
+<head>
+#include "../style.css"
+<title>网站 PageView 网段分析查询</title>
+<meta http-equiv="Content-Type" content="text/html; charset=gb2312">
+</head>
+
+<body bgcolor="#FFFFFF">
+<center>
+  <table border=0>
+    <tr>
+      <td> 
+
+<!----> 
+#include "../hash.phtml" 
+<!----> 
+#include "../header.inc" 
+<!----> 
+<?
+my $day_year;my $day_month;my $day_day;
+my $month_year;my $month_month;
+my $year_year ;
+$day_year = $month_year = $year_year = $query->param("year") ;
+$day_month = $month_month = $query->param("month") ;
+$day_day = $query->param("day") ;
+!>
+<!----> 
+#include "query.phtml" 
+<!----> 
+        <table border=0>
+          <tr> 
+            <td> 
+<p>&nbsp;</p><table border=1 cellspacing="0" cellpadding="0" bordercolor=606000>
+<tr><td>
+<!----> 
+<?
+if ( !$day_year && !$month_year && !year_year ){
+	$day_year = $now_string[0] ;
+	$day_month = $now_string[1] ;
+	$day_day = $now_string[2] ;
+}
+!>
+
+#if  ( $day_day && $day_month && $day_year )
+<!----> 
+#include "old_day.phtml" 
+<!----> 
+#elsif ( $month_month && $month_year )
+<!----> 
+#include "old_month.phtml" 
+<!----> 
+#elsif ( $year_year )
+<!----> 
+#include "old_year.phtml" 
+<!----> 
+#endif
+<!----> 
+</td></tr></table>
+<p>&nbsp;</p></td>
+          </tr>
+        </table>
+<!----> 
+#include "query.phtml" 
+<!----> 
+#include "../footer.inc" 
+<!----> 
+      </td>
+    </tr>
+  </table>
+</center>
+</body>
+</html>

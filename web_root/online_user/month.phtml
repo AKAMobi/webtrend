@@ -1,0 +1,84 @@
+<!-- online_user/day.phtml started -->
+<?
+my $sth ;
+
+%prod_user_counter = () ;
+%all_users = () ;
+%avg_users = () ;
+
+$sth = $dbh_log->prepare ( <<_SQL_ )  or die "prepare in day.phtml error!" ;
+select type,DAYOFMONTH(FROM_UNIXTIME(unixtime)) as day ,avg(online_num) from online_user_tb 
+where unixtime >= UNIX_TIMESTAMP('$day_year-$day_month-1') 
+and unixtime < UNIX_TIMESTAMP(DATE_ADD('$day_year-$day_month-1',INTERVAL 1 MONTH))
+group by day
+_SQL_
+$sth->execute or die "execute error in day.phtml" ;
+
+my $day;my $product ;
+my %prod_user_counter; 
+my $all_users ;my $avg_users ;
+$all_users = 0 ;
+while ( ($product,$day,$tmp)=$sth->fetchrow_array )
+{
+	$prod_user_counter{$day}{$product} = $tmp ;
+	$all_users{$product} += $tmp ;
+}
+foreach $product ( keys %all_users ){
+	$avg_users{$product} = $all_users{$product}/(keys %prod_user_counter) ;
+}
+
+$sth->finish ;
+!>
+
+<table border=0 dwcopytype="CopyTableRow" cellpadding="0" cellspacing="0">
+  <tr> 
+    <td> 
+      <table border=1 cellspacing="0" cellpadding="0" bordercolor=606000>
+        <tr> 
+          <td> 
+            <table bgcolor=f0f0e0 class=small width=620 cellspacing=0 cellpedding=0 border=0>
+              <tr> 
+                <td colspan=2 bgcolor=606000><i><b><font size=+1 color=ffe080>1. 
+                  </font></b></i><font color=ffffff>在 线 用 户 每 月 统 计 
+                  ( <?=$day_year!> 年 <?=$day_month!> 月 )</font>
+<?foreach $product ( keys %all_users ){next if ( $use_filter && $filter ne $Online{$product} ) ;!>	
+<br><font color=red><?=$Online{$product}!> 平 均 <?=int($avg_users{$product})!> 人 </font> 
+<?}!>
+	</td></tr>
+
+
+<!-- foreach started -->
+<?
+ my $bgcolor='fffff8' ;
+foreach $day ( reverse sort {$a<=>$b} keys %prod_user_counter )
+{
+!>
+              <tr bgcolor=<?=$bgcolor!>> 
+                <td align=right> <?=$day!> 日: </td>
+                <td>
+	<? foreach $product ( keys %{$prod_user_counter{$day}} ){ next if ( $use_filter && $filter ne $Online{$product} ) ;!>
+<img src=/images/bar3.gif width=<?=int(1+($all_users{$product}==0?0:($bar_length*($prod_user_counter{$day}{$product}/$all_users{$product}))))!> height=7>
+<font color=208000><?=int($prod_user_counter{$day}{$product})!>人 [<?=$Online{$product}!>]</font>
+<font color=ff0000><?=substr($avg_users{$product}==0?0:(100*$prod_user_counter{$day}{$product}/$all_users{$product}),0,4)!>%</font><br>
+	<?}!>
+
+	</td></tr>
+		<? if ($bgcolor eq 'fffff8'){
+				$bgcolor='f0f0e0' ;
+			}else{
+				$bgcolor='fffff8' ;
+			}
+
+}
+!>
+<!-- foreach ended -->
+
+            </table>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+
+<!-- user/day.phtml ended -->

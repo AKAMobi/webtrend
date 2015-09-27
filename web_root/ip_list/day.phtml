@@ -1,0 +1,76 @@
+<!-- ip_list/day.phtml started -->
+<?
+my $sth ;
+my $tomorrow ;
+#$tomorrow = $day_day +1 ;
+
+$sth = $dbh->prepare ( <<_SQL_ )  or die "prepare in day.phtml error!" ;
+select SUBSTRING_INDEX(uip, '.', 2) as net, count(*) FROM UserInfo
+where ctime >= UNIX_TIMESTAMP('$day_year-$day_month-$day_day') and
+ctime < UNIX_TIMESTAMP(DATE_ADD('$day_year-$day_month-$day_day',INTERVAL 1 DAY))
+group by net 
+_SQL_
+
+$sth->execute or die "execute error in day.phtml" ;
+
+my $net;
+my %user_counter; 
+my $all_users ;
+
+$all_users = 0 ;
+
+while ( ($net,$tmp)=$sth->fetchrow_array )
+{
+	$user_counter{$net} = $tmp ;
+	$all_users += $user_counter{$net} ;
+}
+$sth->finish ;
+!>
+
+<table border=0 dwcopytype="CopyTableRow" cellpadding="0" cellspacing="0">
+  <tr> 
+    <td> 
+      <table border=1 cellspacing="0" cellpadding="0" bordercolor=606000>
+        <tr> 
+          <td> 
+            <table bgcolor=f0f0e0 class=small width=620 cellspacing=0 cellpedding=0 border=0>
+       <tr> 
+          <td colspan=2 bgcolor=606000><i><b><font size=+1 color=ffe080>１.
+</font></b></i><font color=ffffff>日 注 册 用 户 网 段 分 布 列 表 ( <?=$day_year!>年<?=$day_month!>月<?=$day_day!>日 ) <?=$all_users!>人</font></td>
+        </tr>
+        <tr bgcolor=e0e0e0>
+          <td>网段</td>
+          <td>用户数目</td>
+        </tr>
+
+<!-- foreach started -->
+<?
+my $bgcolor='fffff8';
+foreach $net ( reverse sort  {$user_counter{$a}<=>$user_counter{$b}} keys %user_counter )
+{
+next if ( $user_counter{$net}<$mini_user ) ;
+!>
+              <tr bgcolor=<?=$bgcolor!>> 
+                <td align="right"><?=$Net2Name{$net}!>[<?=$net!>.x.x]: </td>
+                <td><img src=/images/bar3.gif width=<?=int(1+($all_users==0?0:($bar_length*($user_counter{$net}/$all_users))))!> height=7><font color=208000>
+<?=$user_counter{$net}!></font> <font
+color=ff0000><?=substr($all_users==0?0:(100*$user_counter{$net}/$all_users),0,4)!>%</font></td>
+              </tr>
+		<? if ($bgcolor eq 'fffff8'){
+				$bgcolor='f0f0e0' ;
+			}else{
+				$bgcolor='fffff8' ;
+			}
+}
+!>
+<!-- foreach ended -->
+
+            </table>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+
+<!-- ip_list/day.phtml ended -->

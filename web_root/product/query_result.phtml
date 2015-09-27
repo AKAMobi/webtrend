@@ -1,0 +1,89 @@
+<html> 
+<head>
+#include "../style.css"
+<title>网站 PageView 分析查询</title>
+<meta http-equiv="Content-Type" content="text/html; charset=gb2312">
+</head>
+
+<body bgcolor="#FFFFFF">
+<center>
+  <table border=0>
+    <tr>
+      <td> 
+<!----> 
+#include "../hash.phtml" 
+<!----> 
+#include "../header.inc" 
+<!----> 
+<?
+my $day_year;my $day_month;my $day_day;
+my $month_year;my $month_month;
+my $year_year ;
+$day_year = $month_year = $year_year = $query->param("year") ;
+$day_month = $month_month = $query->param("month") ;
+$day_day = $query->param("day") ;
+!>
+<!----> 
+#include "query.phtml" 
+<!----> 
+        <table border=0>
+          <tr> 
+            <td> 
+<p>&nbsp;</p><table border=1 cellspacing="0" cellpadding="0" bordercolor=606000>
+<tr><td>
+<!----> 
+<?
+if ( !$day_year && !$month_year && !year_year ){
+	$day_year = $now_string[0] ;
+	$day_month = $now_string[1] ;
+	$day_day = $now_string[2] ;
+}
+
+$now_string = strftime "%Y-%m-%d", localtime;
+@now_string = split("-", $now_string) ;
+$now_year = $now_string[0] ;
+$now_month = $now_string[1] ;
+$now_day = $now_string[2] ;
+my $history_days = ($now_year-$day_year)*365 
+                       + ($now_month-$day_month)*30 
+                        +($now_day-$day_day) ;
+if ( $remote_user ne 'logadm' ){
+        if ( 0>$history_days || $history_days > $history_permit{$remote_user} ){
+                print "<h1><font color=red>Not permit view this page</font></h1>
+" ;
+                $dbh && $dbh->disconnect ;
+                $dbh_log && $dbh_log->disconnect ;
+		exit ;
+        }
+}             
+!>
+
+#if  ( $day_day && $day_month && $day_year )
+<!----> 
+#include "old_day.phtml" 
+<!----> 
+#elsif ( $month_month && $month_year )
+<!----> 
+#include "old_month.phtml" 
+<!----> 
+#elsif ( $year_year )
+<!----> 
+#include "old_year.phtml" 
+<!----> 
+#endif
+<!----> 
+</td></tr></table>
+<p>&nbsp;</p></td>
+          </tr>
+        </table>
+<!----> 
+#include "query.phtml" 
+<!----> 
+#include "../footer.inc" 
+<!----> 
+      </td>
+    </tr>
+  </table>
+</center>
+</body>
+</html>

@@ -1,0 +1,25 @@
+<form method="post" action="/online_user/query_result.phtml">
+<input type='checkbox' name='use_filter' <?=$use_filter?"checked":""!>>
+只查看
+<select size=1 name=filter style="font-size:9pt;width=98">
+
+<?foreach $tmp ( values %Online ){!>
+<option value="<?=$tmp!>" <?=(($filter eq $tmp)?selected:"")!>><?=$tmp!></option>
+<?}!>
+
+</select>
+
+产品的在线用户情况<p>
+
+
+  <p> 
+    查看 
+            <input type="text" name="year" size="5" value=<?=$day_year!>>
+    年 
+    <input type="text" name="month" size="3" value=<?=$day_month!>>
+    月 
+    <input type="text" name="day" size="3" value=<?=$day_day!>>
+    在线用户的数目
+    <input type="submit" name="Submit" value="走~~">
+  </p>
+</form>

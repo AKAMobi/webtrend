@@ -1,0 +1,70 @@
+<html> 
+<head>
+#include "../style.css"
+<title>用户注册分析查询</title>
+<meta http-equiv="Content-Type" content="text/html; charset=gb2312">
+</head>
+
+<body bgcolor="#FFFFFF">
+<center>
+  <table border=0>
+    <tr>
+      <td> 
+<!----> 
+#include "../hash.phtml" 
+<!----> 
+#include "../header.inc" 
+<!----> 
+        <table border=0>
+          <tr> 
+            <td> 
+<p>&nbsp;</p>
+<!----> 
+
+<?
+my $day_year;my $day_month;my $day_day;
+my $month_year;my $month_month;
+my $year_year ;
+$day_year = $month_year = $year_year = $query->param("year") ;
+$day_month = $month_month = $query->param("month") ;
+$day_day = $query->param("day") ;
+
+if ( !$day_year && !$month_year && !$year_year ){
+	$now_string = strftime "%Y-%m-%d", localtime;      
+	@now_string = split("-", $now_string) ;
+	$day_year = $now_string[0] ;
+	$day_month = $now_string[1] ;
+	$day_day = $now_string[2] ;
+}
+
+!>
+<!----> 
+#include "query.phtml" 
+#if ( $day_day && $day_month && $day_year )
+<!----> 
+#include "day.phtml" 
+<!----> 
+#elsif ( $month_month && $month_year )
+<!----> 
+#include "month.phtml" 
+<!----> 
+#elsif ( $year_year )
+<!----> 
+#include "year.phtml" 
+<!----> 
+#endif
+<!----> 
+<p>&nbsp;</p></td>
+          </tr>
+        </table>
+<!----> 
+#include "query.phtml" 
+<!----> 
+#include "../footer.inc" 
+<!----> 
+      </td>
+    </tr>
+  </table>
+</center>
+</body>
+</html>

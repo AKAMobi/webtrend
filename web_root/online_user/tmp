@@ -1,0 +1,416 @@
+<html> 
+<head>
+
+<style>
+ td{font-size:9pt;font-family:宋体}
+ A{font-size:9pt; text-decoration:underline; color=black}
+ A:hover{font-size:9pt; text-decoration:underline; color:red}
+ A.linkwhite {font-size:9pt; text-decoration:underline;color:white} 
+ A.linkwhite:hover {font-size:9pt;text-decoration:underline;color:black;background-color:white}
+ A.linkred {font-size:9pt; text-decoration:underline;color:#660066} 
+ A.linkred:hover {font-size:9pt;text-decoration:underline;color:white;background=#660066}
+ A.linkblack {font-size:9pt; text-decoration:underline;color:black} 
+ A.linkblack2 {font-size:9pt; text-decoration:underline;color:black;}  
+ A.linkblack:hover {font-size:9pt;text-decoration:underline;background-color:black;color:white}
+ A.linkyellow {font-size:9pt; text-decoration:underline;color:#ff7e01} 
+ A.linkyellow:hover {font-size:9pt;text-decoration:underline;background-color:#ff7e01;color:white}
+ A.linkblue {font-size:9pt; text-decoration:underline;color:#000066}
+ A.linkblue:hover {font-size:9pt;text-decoration:underline;color:white;background-color='#000066'}
+ A.linkgreen {font-size:9pt; text-decoration:underline;color:#335a5c}
+ A.linkgreen:hover {font-size:9pt;text-decoration:underline;color:white;background-color='#446a6c'} 
+ .wordwhite {font-size:9pt;color:white;font-family:宋体}
+ .wordyellow {font-size:9pt;color:#ff7e01;font-family:宋体}
+ .wordyellow2 {font-size:9pt;color:#ffba66;font-family:宋体} 
+ .wordblue {font-size:9pt;color:#000066;font-family:宋体}
+ .wordlight {font-size:9pt;color:#336699;font-family:宋体} 
+ .wordblack {font-size:9pt;color:#000000;font-family:宋体}  
+ .wordblack2 {font-size:9pt;color:#000000;font-family:宋体;}  
+ .wordgreen {font-size:9pt; text-decoration:none;color:#446a6c} 
+ .wordred {font-size:9pt; text-decoration:none;color:#660066} 
+</style>
+
+<title>在线用户分析</title>
+<meta http-equiv="Content-Type" content="text/html; charset=gb2312">
+</head>
+
+<body bgcolor="#FFFFFF">
+<center>
+  <table border=0>
+    <tr>
+      <td> 
+<!----> 
+<?
+# predefined vars
+
+# bar length
+$bar_length = 500 ;
+
+#惚略的 mini pageview 和倍数
+#$mini_pageview = 100 ;
+$mini_pageview = 10 ;
+$XminiMonth = 10 ;
+$XminiYear = 100 ;
+
+#忽略统计的 User数
+$mini_user = 2 ;
+
+# 网络到中文名
+my %Net2Name ;
+$Net2Name{"10.9"} = "内部居域网" ;
+$Net2Name{"166.111"} = "清华大学" ;
+$Net2Name{"162.105"} = "北京大学" ;
+$Net2Name{"159.226"} = "中科院" ;
+$Net2Name{"202.205"} = "教育热线" ;
+
+# 在线用户
+my %Online; 
+$Online{'www'}	= '社区' ;
+$Online{'game'}	= '游戏' ;
+
+# 虚拟主机到产品名
+my %Host2Name ;
+$Host2Name{"feedback"}	= "反馈" ;
+$Host2Name{"pets"}	= "崇物" ;
+$Host2Name{"webtrend"}	= "Web分析" ;
+$Host2Name{"www"} 	= "首页" ;
+$Host2Name{"bbs"} = 	"讨论区" ;
+$Host2Name{"news"} 	= "新闻" ;
+$Host2Name{"chat"} 	= "聊天室" ;
+$Host2Name{"pager"} 	= "呼叫器" ;
+$Host2Name{"ad"} = "广告" ;
+$Host2Name{"address"} = "地址簿" ;
+$Host2Name{"album"} = "像册" ;
+$Host2Name{"alumni"} = "校友录" ;
+$Host2Name{"calendar"} = "日历" ;
+$Host2Name{"express"} = "特快" ;
+$Host2Name{"group"} = "兴趣小组" ;
+$Host2Name{"help"} = "帮助" ;
+$Host2Name{"home"} = "个人主页" ;
+$Host2Name{"homepage"} = "个人主页目录" ;
+$Host2Name{"hosting"} = "主页大巴" ;
+$Host2Name{"profile"} = "个人信息" ;
+$Host2Name{"wwwbbs"} = "个人 BBS" ;
+$Host2Name{"message"} = "站内留言" ;
+$Host2Name{"mail"} = "电子邮件" ;
+$Host2Name{"game"} = "在线游戏" ;
+$Host2Name{"channel"} = "频道" ;
+$Host2Name{""} = "未知产品" ;
+!>
+<!----> 
+<?
+use CGI ;
+use DBI ;
+use POSIX qw(strftime);   
+
+#my $user_db_host = "zixia.net" ;
+#my $user_db_user = "zixia" ;
+#my $user_db_pass = "IamZixia!" ;
+
+my $user_db_host = "dns.chinaren.net" ;
+my $user_db_user = "zixia" ;
+my $user_db_pass = "IamZixia!" ;
+
+my $log_db_host = "news.chinaren.net" ;
+my $log_db_user = "zixia" ;
+my $log_db_pass = "IamZixia!" ;
+
+my $query = new CGI ;
+
+my $dbh ; # this is for user register info .
+my $dbh_log ; # this is the log bd's dbh.
+
+$dbh = DBI->connect ( "DBI:mysql:ChinaRen:$user_db_host", $user_db_user, $user_db_pass ) or die "user db connect error!" ;
+$dbh_log = DBI->connect ( "DBI:mysql:web_log_db:$log_db_host", $log_db_user, $log_db_pass ) or die "web log db connect error!" ;
+
+$filter = $query->param("filter") ;
+$use_filter = $query->param("use_filter") ;
+!>
+
+<div align="center">
+  <h1><a href="/"><font color="#00CCCC">ChinaRen Web 分析系统</font></a></h1>
+</div>
+<div align="center"> 
+  <p>
+<table border=0>
+<tr><td>
+	<a href="/user/user.phtml">[注册用户数目分析]</a>
+</td><td>
+	<a href="/product/product.phtml">[各项产品PageView分析]</a>
+</td><td>
+	<a href="/session/session.phtml">[注册用户Session分析]</a>
+</td></tr>
+<tr><td>
+	<a href="/ip_list/ip_list.phtml">[注册用户网段分析]</a>
+</td><td>
+	<a href="/ip_product/ip_product.phtml">[产品PageView网段分布]</a>
+</td><td>
+	<a href="/complex/complex.phtml">[综合PageView访问分析]</a>
+</td></tr>
+<tr><td>
+	<a href="/online_user/online_user.phtml">[在线用户数目分析]</a>
+</td><td>
+	<a href="/ip_product/"></a>
+</td><td>
+	<a href="/"></a>
+</td></tr>
+
+</table>
+  </p>
+</div>
+
+<!----> 
+<?
+$now_string = strftime "%G-%m-%d", localtime;      
+@now_string = split("-", $now_string) ;
+my $day_year;my $day_month;my $day_day;
+my $month_year;my $month_month;
+my $year_year ;
+$day_year = $month_year = $year_year = $now_string[0] ;
+$day_month = $month_month = $now_string[1] ;
+$day_day = $now_string[2] ;
+!>
+<!----> 
+<form method="post" action="/online_user/query_result.phtml">
+<input type='checkbox' name='use_filter' <?=$use_filter?"checked":""!>>
+只查看
+<select size=1 name=filter style="font-size:9pt;width=98">
+
+<?foreach $tmp ( values %Online ){!>
+<option value="<?=$tmp!>" <?=(($filter eq $tmp)?selected:"")!>><?=$tmp!></option>
+<?}!>
+
+</select>
+
+产品的在线用户情况<p>
+
+
+  <p> 
+    查看 
+            <input type="text" name="year" size="5" value=<?=$day_year!>>
+    年 
+    <input type="text" name="month" size="3" value=<?=$day_month!>>
+    月 
+    <input type="text" name="day" size="3" value=<?=$day_day!>>
+    在线用户的数目
+    <input type="submit" name="Submit" value="走~~">
+  </p>
+</form>
+<!----> 
+<p>&nbsp;</p><table border=1 cellspacing="0" cellpadding="0" bordercolor=606000>
+<tr><td>
+<!-- online_user/day.phtml started -->
+<?
+my $sth ;
+my $tomorrow ;
+
+$sth = $dbh_log->prepare ( <<_SQL_ )  or die "prepare in day.phtml error!" ;
+select type,HOUR(FROM_UNIXTIME(unixtime)) as hour ,avg(online_num) from online_user_tb 
+where unixtime >= UNIX_TIMESTAMP('$day_year-$day_month-$day_day') 
+and unixtime < UNIX_TIMESTAMP(DATE_ADD('$day_year-$day_month-$day_day',INTERVAL 1 DAY))
+group by hour 
+order by hour desc 
+_SQL_
+$sth->execute or die "execute error in day.phtml" ;
+
+my $hour;my $product ;
+my %prod_user_counter; 
+my $all_users ;my $avg_users ;
+$all_users = 0 ;
+while ( ($product,$hour,$tmp)=$sth->fetchrow_array )
+{
+	$prod_user_counter{$hour}{$product} = $tmp ;
+	$all_users{$product} += $tmp ;
+}
+foreach $product ( keys %all_users ){
+	$avg_users{$product} = $all_users{$product}/(keys %prod_user_counter) ;
+}
+
+$sth->finish ;
+!>
+
+<table border=0 dwcopytype="CopyTableRow" cellpadding="0" cellspacing="0">
+  <tr> 
+    <td> 
+      <table border=1 cellspacing="0" cellpadding="0" bordercolor=606000>
+        <tr> 
+          <td> 
+            <table bgcolor=f0f0e0 class=small width=620 cellspacing=0 cellpedding=0 border=0>
+              <tr> 
+                <td colspan=2 bgcolor=606000><i><b><font size=+1 color=ffe080>1. 
+                  </font></b></i><font color=ffffff>在 线 用 户 每小 时 统 计 
+                  ( <?=$day_year!> 年 <?=$day_month!> 月 <?=$day_day!> 日 )</font>
+<?foreach $product ( keys %all_users ){next if ( $use_filter && $filter ne $Online{$product} ) ;!>	
+<br><font color=red><?=$Online{$product}!> 平 均 <?=int($avg_users{$product})!> 人 </font> 
+<?}!>
+	</td></tr>
+
+
+<!-- foreach started -->
+<?
+ my $bgcolor='fffff8' ;
+foreach $hour ( reverse sort {$a<=>$b} keys %prod_user_counter )
+{
+!>
+              <tr bgcolor=<?=$bgcolor!>> 
+                <td align=right> <?=$hour!> 点: </td>
+                <td>
+	<? foreach $product ( keys %{$prod_user_counter{$hour}} ){ next if ( $use_filter && $filter ne $Online{$product} ) ;!>
+<img src=/images/bar3.gif width=<?=int(1+($all_users{$product}==0?0:($bar_length*($prod_user_counter{$hour}{$product}/$all_users{$product}))))!> height=7>
+<font color=208000><?=int($prod_user_counter{$hour}{$product})!>人 [<?=$Online{$product}!>]</font>
+<font color=ff0000><?=substr($avg_users{$product}==0?0:(100*$prod_user_counter{$hour}{$product}/$all_users{$product}),0,4)!>%</font><br>
+	<?}!>
+
+	</td></tr>
+		<? if ($bgcolor eq 'fffff8'){
+				$bgcolor='f0f0e0' ;
+			}else{
+				$bgcolor='fffff8' ;
+			}
+
+}
+!>
+<!-- foreach ended -->
+
+            </table>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+
+<!-- user/day.phtml ended -->
+<!----> 
+</td></tr></table>
+<p>&nbsp;</p><table border=1 cellspacing="0" cellpadding="0" bordercolor=606000>
+<tr><td>
+<!----> 
+rekm#include "month.phtml" 
+<!----> 
+</td></tr></table>
+<p>&nbsp;</p><table border=1 cellspacing="0" cellpadding="0" bordercolor=606000>
+<tr><td>
+<!----> 
+<!-- online_user/day.phtml started -->
+<?
+my $sth ;
+
+$sth = $dbh_log->prepare ( <<_SQL_ )  or die "prepare in day.phtml error!" ;
+select type,MONTH(FROM_UNIXTIME(unixtime)) as month ,avg(online_num) from online_user_tb 
+where unixtime >= UNIX_TIMESTAMP('$day_year-0-0') 
+and unixtime < UNIX_TIMESTAMP(DATE_ADD('$day_year-0-0',INTERVAL 1 YEAR))
+group by month
+_SQL_
+$sth->execute or die "execute error in day.phtml" ;
+
+my $month;my $product ;
+my %prod_user_counter; 
+my $all_users ;my $avg_users ;
+$all_users = 0 ;
+while ( ($product,$month,$tmp)=$sth->fetchrow_array )
+{
+	$prod_user_counter{$month}{$product} = $tmp ;
+	$all_users{$product} += $tmp ;
+}
+foreach $product ( keys %all_users ){
+	$avg_users{$product} = $all_users{$product}/(keys %prod_user_counter) ;
+}
+
+$sth->finish ;
+!>
+
+<table border=0 dwcopytype="CopyTableRow" cellpadding="0" cellspacing="0">
+  <tr> 
+    <td> 
+      <table border=1 cellspacing="0" cellpadding="0" bordercolor=606000>
+        <tr> 
+          <td> 
+            <table bgcolor=f0f0e0 class=small width=620 cellspacing=0 cellpedding=0 border=0>
+              <tr> 
+                <td colspan=2 bgcolor=606000><i><b><font size=+1 color=ffe080>1. 
+                  </font></b></i><font color=ffffff>在 线 用 户 每 年 统 计 
+                  ( <?=$day_year!> 年 )</font>
+<?foreach $product ( keys %all_users ){next if ( $use_filter && $filter ne $Online{$product} ) ;!>	
+<br><font color=red><?=$Online{$product}!> 平 均 <?=int($avg_users{$product})!> 人 </font> 
+<?}!>
+	</td></tr>
+
+
+<!-- foreach started -->
+<?
+ my $bgcolor='fffff8' ;
+foreach $month ( reverse sort {$a<=>$b} keys %prod_user_counter )
+{
+!>
+              <tr bgcolor=<?=$bgcolor!>> 
+                <td align=right> <?=$month!> 月: </td>
+                <td>
+	<? foreach $product ( keys %{$prod_user_counter{$month}} ){ next if ( $use_filter && $filter ne $Online{$product} ) ;!>
+<img src=/images/bar3.gif width=<?=int(1+($all_users{$product}==0?0:($bar_length*($prod_user_counter{$month}{$product}/$all_users{$product}))))!> height=7>
+<font color=208000><?=int($prod_user_counter{$month}{$product})!>人 [<?=$Online{$product}!>]</font>
+<font color=ff0000><?=substr($avg_users{$product}==0?0:(100*$prod_user_counter{$month}{$product}/$all_users{$product}),0,4)!>%</font><br>
+	<?}!>
+
+	</td></tr>
+		<? if ($bgcolor eq 'fffff8'){
+				$bgcolor='f0f0e0' ;
+			}else{
+				$bgcolor='fffff8' ;
+			}
+
+}
+!>
+<!-- foreach ended -->
+
+            </table>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+
+<!-- user/day.phtml ended -->
+</td></tr></table>
+<!----> 
+<form method="post" action="/online_user/query_result.phtml">
+<input type='checkbox' name='use_filter' <?=$use_filter?"checked":""!>>
+只查看
+<select size=1 name=filter style="font-size:9pt;width=98">
+
+<?foreach $tmp ( values %Online ){!>
+<option value="<?=$tmp!>" <?=(($filter eq $tmp)?selected:"")!>><?=$tmp!></option>
+<?}!>
+
+</select>
+
+产品的在线用户情况<p>
+
+
+  <p> 
+    查看 
+            <input type="text" name="year" size="5" value=<?=$day_year!>>
+    年 
+    <input type="text" name="month" size="3" value=<?=$day_month!>>
+    月 
+    <input type="text" name="day" size="3" value=<?=$day_day!>>
+    在线用户的数目
+    <input type="submit" name="Submit" value="走~~">
+  </p>
+</form>
+<!----> 
+<hr>
+<div align=right>
+<a href='mailto:zixia@chinaren-inc.com'>zixia@ChinaRen Inc.</a> 1999, All rights reserved. 
+</div>
+<?
+$dbh->disconnect() ;
+$dbh_log->disconnect() ;
+!>
+<!----> 
+      </td>
+    </tr>
+  </table>
+</center>
+</body>
+</html>

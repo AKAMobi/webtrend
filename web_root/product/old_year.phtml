@@ -1,0 +1,86 @@
+<!-- product/year.phtml started -->
+<?
+local (%page_view, %prod_page_view)  ;
+#local ($product) ;
+
+%prod_page_view = () ;
+
+my ($sth,$month,$product,$all_pageview) ;
+local $tmp ;
+
+
+$sth = $dbh_log->prepare ( <<_SQL_ )  or die "prepare in product/year.phtml error!" ;
+select MONTH(date_hour) as month ,sum(num_chinaren) from pageview_tb 
+where date_hour >= '$year_year-01-01' and
+date_hour < DATE_ADD('$year_year-01-01',INTERVAL 1 YEAR)
+group by month 
+_SQL_
+
+$all_pageview = 0 ;
+$sth->execute or die "execute in product/year.phtml error!" ;
+while ( ($month,$tmp)=$sth->fetchrow_array ){
+	$page_view{$month}=$tmp ;
+	$all_pageview += $tmp ;
+}
+$sth->finish ;
+
+foreach $month ( reverse sort {$a<=>$b} keys %page_view ){
+	$sth = $dbh_log->prepare ( <<_SQL_ )  or die "prepare in product/year.phtml error!" ;
+select product ,sum(num_chinaren) from pageview_tb 
+where date_hour >= '$year_year-$month-01' and
+date_hour < DATE_ADD('$year_year-$month-01',INTERVAL 1 MONTH)
+group by product
+_SQL_
+	$sth->execute or die "execute group by host_name error in product/year.phtml" ;
+	while ( ($product,$tmp)=$sth->fetchrow_array ){
+		$prod_page_view{$month}{($Host2Name{$product})} = $tmp ;
+	}
+	$sth->finish ;
+} 
+!>
+
+<table border=1 cellspacing="0" cellpadding="0" bordercolor=606000>
+<tr><td> 
+
+<table bgcolor=fff8e0 class=small width=620 cellspacing=0 cellpedding=0 border=2 bordercolor=606000>
+<tr><td colspan=3 bgcolor=606000>
+	<I><B><font size=+1 color=ffe080> 3.  </font></B></I>
+	<font color=ffffff> 年 产 品 PageView 分析 
+	<font color=red> 总PageView: <b><?=$all_pageview!></b> 页</font> ( <?=$year_year!>年 )</font>
+	</td></tr>
+
+<!-- foreach 1 started -->
+<?
+foreach $month ( reverse sort {$a<=>$b} keys %page_view )
+{
+!>
+
+<tr bgcolor=fffff8> 
+	<td align=right> <?=$month!> 月: </td>
+    	<td> 
+		<!-- table per month -->
+            <table cellspacing=0 cellpadding=0 border=0 width=100%>
+	<!-- foreach 2 started -->
+	<? foreach $product ( reverse sort {$prod_page_view{$month}{$a}<=>$prod_page_view{$month}{$b}} keys %{$prod_page_view{$month}} ) {next if ( ( $use_filter && ($product ne $filter) ) );  !>
+<!--  %{$aa{a}}  -->
+            <tr height=7>
+                <td><img src="/images/bar3.gif" width="<?=int(1+($page_view{$month}==0?0:($bar_length*($prod_page_view{$month}{$product})/$page_view{$month})))!>" height="7" border=0><font size=2 color=208000> 
+                  [<?=$product!>]<?=$prod_page_view{$month}{$product}!> 页</font> <font size=2 color=ff0000> <?=$page_view{$month}==0?0:substr(100*$prod_page_view{$month}{$product}/$page_view{$month},0,4)!>%</font></td>
+             </tr>
+	<? } !>
+	<!-- foreach 2 ended -->
+		<!-- table per month ended -->
+          </td>
+        </tr>
+	</table>
+</td></tr>
+<?
+}
+!>
+<!-- foreach 1 end -->
+
+</table>
+
+</td></tr>
+</table>
+<!-- product/month.phtml ended -->

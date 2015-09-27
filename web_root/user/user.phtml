@@ -1,0 +1,90 @@
+<html> 
+<head>
+#include "../style.css"
+<title>用户注册分析</title>
+<meta http-equiv="Content-Type" content="text/html; charset=gb2312">
+</head>
+
+<body bgcolor="#FFFFFF">
+<center>
+  <table border=0>
+    <tr>
+      <td> 
+<!----> 
+#include "../hash.phtml" 
+<!----> 
+#include "../header.inc" 
+<!----> 
+#include "query.phtml" 
+<!----> 
+        <table border=0>
+          <tr> 
+            <td> 
+<?
+my $num_all_users;my $num_recent_users ;
+ 
+$sth = $dbh->prepare ( "SELECT count(*) FROM UserInfo" ) or die "prepare" ;
+$sth->execute or die "execute" ;
+$num_all_users = $sth->fetchrow_array or die "fetchrow_array" ;
+$sth->finish ;
+
+$sth = $dbh->prepare ( <<_SQL_ ) or die "prepare" ;
+SELECT count(*) FROM UserInfo 
+WHERE rtime > UNIX_TIMESTAMP(DATE_ADD(now(),INTERVAL -14 DAY))
+_SQL_
+$sth->execute or die "execute" ;
+$num_recent_users = $sth->fetchrow_array ;
+$sth->finish ;
+!>
+
+        <p>所有用户数：<font color=red size=+2><?=$num_all_users!></font> 人<br>
+          最近 2 周登陆过的用户数： <font color=red size=+2><?=$num_recent_users!></font> 人</br>
+	活用户比例: <font color=red size=+2><?=substr(100*$num_recent_users/$num_all_users,0,4)!>%</font> <br>
+<table border=1 cellspacing="0" cellpadding="0" bordercolor=606000>
+<tr><td>
+<!----> 
+
+<?
+$now_string = strftime "%Y-%m-%d", localtime;      
+@now_string = split("-", $now_string) ;
+my $day_year;my $day_month;my $day_day;
+my $month_year;my $month_month;
+my $year_year ;
+$day_year = $month_year = $year_year = $now_string[0] ;
+$day_month = $month_month = $now_string[1] ;
+$day_day = $now_string[2] ;
+!>
+
+<!---->
+#include "day.phtml" 
+<!----> 
+</td></tr></table>
+<p>&nbsp;</p><table border=1 cellspacing="0" cellpadding="0" bordercolor=606000>
+<tr><td>
+<!----> 
+#if ( $remote_user eq 'logadm' )
+#include "month.phtml" 
+#endif
+<!----> 
+</td></tr></table>
+<p>&nbsp;</p><table border=1 cellspacing="0" cellpadding="0" bordercolor=606000>
+<tr><td>
+<!----> 
+#if ( $remote_user eq 'logadm' )
+#include "year.phtml" 
+#endif
+</td></tr></table>
+<p>&nbsp;</p></td>
+          </tr>
+        </table>
+<!----> 
+#include "query.phtml" 
+<!----> 
+#include "../footer.inc" 
+<!----> 
+      </td>
+    </tr>
+  </table>
+</center>
+</body>
+</html>

@@ -1,0 +1,85 @@
+<!-- complex/month.phtml started -->
+<?
+local (%page_view)  ;
+
+my ($sth,$day,$product,$all_pageview) ;
+local $tmp ;
+
+$sth = $dbh_log->prepare ( <<_SQL_ )  or die "prepare in complex/month.phtml error!" ;
+select DAYOFMONTH(date_hour) as day ,sum(num_chinaren) from pageview_tb 
+where date_hour >= '$month_year-$month_month-01' and
+date_hour < DATE_ADD('$month_year-$month_month-01',INTERVAL 1 MONTH)
+group by day 
+_SQL_
+
+$all_pageview = 0 ;
+$sth->execute or die "execute in complex/month.phtml error!" ;
+while ( ($day,$tmp)=$sth->fetchrow_array ){
+	$page_view{$day}=$tmp ;
+	$all_pageview += $tmp ;
+}
+$sth->finish ;
+
+
+
+$sth = $dbh_log->prepare ( <<_SQL_ )  or die "prepare in day.phtml error!" ;
+select DAYOFMONTH(FROM_UNIXTIME(unixtime)) as day ,avg(online_num) from online_user_tb 
+where unixtime >= UNIX_TIMESTAMP('$day_year-$day_month-1') 
+and unixtime < UNIX_TIMESTAMP(DATE_ADD('$day_year-$day_month-1',INTERVAL 1 MONTH))
+and type='www'
+group by day
+_SQL_
+$sth->execute or die "execute error in day.phtml" ;
+
+my $day;my $product ;
+my %user_counter; 
+my $all_users ;
+%user_counter = () ;
+%all_users = () ;
+$all_users = 0 ;
+while ( ($day,$tmp)=$sth->fetchrow_array )
+{
+	$user_counter{$day} = $tmp ;
+	$all_users += $tmp ;
+}
+$sth->finish ;
+!>
+
+<table border=1 cellspacing="0" cellpadding="0" bordercolor=606000>
+<tr><td> 
+
+<table bgcolor=fff8e0 class=small width=620 cellspacing=0 cellpedding=0 border=0 bordercolor=606000>
+<tr> 
+    <td colspan=3 bgcolor=606000><I><B><font size=+1 color=ffe080>2. 
+	    </font></B></I><font color=ffffff>
+		月 产 品 综 合 Session PageView 
+		<font color=red> Session PageView: <b><?=int($all_users==0?0:$all_pageview/(24*$all_users))!></b> 页</font> ( <?=$month_year!>年<?=$month_month!>月 )</font>
+	</td>
+</tr>
+
+<!-- foreach 1 started -->
+<?
+my $bgcolor='fffff8' ;
+foreach $day ( reverse sort {$a<=>$b} keys %page_view )
+{
+!>
+<tr bgcolor=<?=$bgcolor!>> 
+	<td align=right> <?=$day!> 日: </td>
+    	<td> 
+                <img src="/images/bar3.gif" width="<?=int(1+($all_pageview==0?0:($bar_length*($page_view{$day}/$all_pageview))))!>" height="7" border=0><font size=2 color=208000> 
+                  <?=int($user_counter{$day}==0?0:$page_view{$day}/(24*$user_counter{$day}))!> 页</font> <font size=2 color=ff0000> <?=$all_pageview==0?0:substr(100*$page_view{$day}/$all_pageview,0,4)!>%</font>
+</td></tr>
+		<? if ($bgcolor eq 'fffff8'){
+				$bgcolor='f0f0e0' ;
+			}else{
+				$bgcolor='fffff8' ;
+			}
+}
+!>
+<!-- foreach 1 end -->
+
+</table>
+
+</td></tr>
+</table>
+<!-- complex/month.phtml ended -->

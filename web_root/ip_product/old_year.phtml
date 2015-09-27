@@ -1,0 +1,65 @@
+<!-- ip_product/year.phtml started -->
+<?
+local (%page_view, %prod_page_view)  ;
+
+my ($sth,$net,$product,$all_pageview) ;
+local $tmp ;
+
+$sth = $dbh_log->prepare ( <<_SQL_ )  or die "prepare in product/year.phtml error!" ;
+select net,sum(num_chinaren) from ip_range_tb 
+where date_hour >= '$year_year-01-01' and
+date_hour < DATE_ADD('$year_year-01-01',INTERVAL 1 YEAR)
+group by net 
+_SQL_
+
+$all_pageview = 0 ;
+$sth->execute or die "execute in ip_product/year.phtml error!" ;
+while ( ($net,$tmp)=$sth->fetchrow_array ){
+	$page_view{$net}=$tmp ;
+	$all_pageview += $tmp ;
+}
+$sth->finish ;
+
+!>
+
+<table border=2 dwcopytype="CopyTableRow" cellpadding="0" cellspacing="0">
+  <tr bordercolor="606000"> 
+    <td> 
+      <table bgcolor=fff8e0 class=small width=620 cellspacing=0 cellpedding=0 border=0 bordercolor=606000>
+        <tr> 
+          <td colspan=3 bgcolor=606000><i><b>
+			<font size=+1 color=ffe080>3. </font></b></i><font color=ffffff>
+			年 PageView 网 段 分 布 <font color="#FF0000"> <?=$all_pageview!> PageView </font> 
+				( <?=$year_year!>年 ) 
+			</font></td>
+        </tr>
+      </tr>
+        <tr bgcolor=e0e0e0>
+          <td>网段</td>
+          <td>PageView</td>
+        </tr>
+		<!-- foreach 1 started -->
+		<? my $bgcolor='fffff8' ;
+		foreach $net ( reverse sort {$page_view{$a}<=>$page_view{$b}} keys(%page_view) ) { next if ( $page_view{$net}<($mini_pageview*$XminiYear));!>
+        <tr bgcolor=<?=$bgcolor!>> 
+          <td align=right><?=$Net2Name{$net}!>[<?=$net!>.x.x]</td>
+                <td><img src="/images/bar3.gif" width=<?=int(1+($page_view{$net}==0?0:($bar_length*$page_view{$net}/$all_pageview)))!>
+ height="7" border=0><font size=2 color=208000> 
+                  <?=$page_view{$net}!> PageView</font> <font size=2 color=ff0000> <?=substr($page_view{$net}==0?0:(100*$page_view{$net}/$all_pageview),0,4)!>% </font></td>
+              </tr>
+		<? if ( $bgcolor eq 'fffff8' ){
+				$bgcolor='f0f0e0' ;
+			}else{
+				$bgcolor='fffff8' ;
+			}
+		#	$bgcolor='ff0000' ;
+		} !>
+		<!-- foreach 1 ended -->
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+
+<!-- ip_product/year.phtml ended -->

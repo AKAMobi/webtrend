@@ -1,0 +1,61 @@
+<html> 
+<head>
+#include "../style.css"
+<title>在线用户分析</title>
+<meta http-equiv="Content-Type" content="text/html; charset=gb2312">
+</head>
+
+<body bgcolor="#FFFFFF">
+<center>
+  <table border=0>
+    <tr>
+      <td> 
+<!----> 
+#include "../hash.phtml" 
+<!----> 
+#include "../header.inc" 
+<!----> 
+<?
+$now_string = strftime "%Y-%m-%d", localtime;      
+@now_string = split("-", $now_string) ;
+my $day_year;my $day_month;my $day_day;
+my $month_year;my $month_month;
+my $year_year ;
+$day_year = $month_year = $year_year = $now_string[0] ;
+$day_month = $month_month = $now_string[1] ;
+$day_day = $now_string[2] ;
+!>
+<!----> 
+#include "query.phtml" 
+<!----> 
+<p>&nbsp;</p><table border=1 cellspacing="0" cellpadding="0" bordercolor=606000>
+<tr><td>
+#include "day.phtml" 
+<!----> 
+</td></tr></table>
+<p>&nbsp;</p><table border=1 cellspacing="0" cellpadding="0" bordercolor=606000>
+<tr><td>
+<!----> 
+#if ( $remote_user eq 'logadm' )
+#include "month.phtml" 
+#endif
+<!----> 
+</td></tr></table>
+<p>&nbsp;</p><table border=1 cellspacing="0" cellpadding="0" bordercolor=606000>
+<tr><td>
+<!----> 
+#if ( $remote_user eq 'logadm' )
+#include "year.phtml" 
+#endif
+</td></tr></table>
+<!----> 
+#include "query.phtml" 
+<!----> 
+#include "../footer.inc" 
+<!----> 
+      </td>
+    </tr>
+  </table>
+</center>
+</body>
+</html>

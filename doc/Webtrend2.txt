@@ -1,0 +1,68 @@
+WebTrend II
+
+I) 数据库
+
+   1) pageview_tb
+CREATE TABLE pageview_tb (
+date_hour    DATETIME NOT NULL, # date_hour
+product      ENUM(
+    'login',
+    'search',   
+    'chat',
+    'card',     
+    'ad',       
+    'address',  
+    'album',    
+    'alumni',   
+    'bbs',      
+    'calendar', 
+    'channel',  
+    'express',  
+    'feedback', 
+    'game',     
+    'group',    
+    'help',     
+    'home',     
+    'homepage', 
+    'hosting',  
+    'mail',     
+    'message',  
+    'news',     
+    'pets',     
+    'profile',  
+    'webtrend', 
+    'www',      
+    'wwwbbs'    
+    ) NOT NULL,         
+is_chinaren      ENUM('Y','N') DEFAULT 'N',
+num_chinaren     MEDIUMINT DEFAULT 0,
+KEY key_date_time (date_hour),
+KEY key_product (product)
+)
+
+    2) ip_range
+CREATE TABLE ip_range_tb (
+net     VARCHAR(7) NOT NULL,        # i.e. 202.112, 166.111
+date_hour       DATETIME DEFAULT NULL,      # date_hour
+num_chinaren    MEDIUMINT DEFAULT 0,
+KEY key_net ( net ),
+KEY key_date_hour ( date_hour )
+)
+
+    3) online_user_tb ;
+CREATE TABLE online_user_tb (
+    unixtime    int(11) DEFAULT NULL,
+    online_num  int(11) DEFAULT NULL,
+    type        enum(
+        'www',
+        'game'
+    )   DEFAULT NULL
+)
+
+    4)access_log_tb ;
+CREATE TABLE access_log_tb (
+    visitor_ip  varchar(15) NOT NULL,
+    host_name   varchar(10) NOT NULL,
+    date_time   datetime    DEFAULT NULL,
+    user_id     varchar(8)  DEFAULT NULL
+)

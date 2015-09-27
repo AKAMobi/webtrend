@@ -1,0 +1,6 @@
+AuthType Basic
+AuthName "ChinaRen WebTrend"
+AuthUserFile /opt/news/zixia/WebTrend/htpasswd
+<Limit GET POST>
+require user logadm all reguser news channel game chat hosting mail bbs zixia
+</Limit> 

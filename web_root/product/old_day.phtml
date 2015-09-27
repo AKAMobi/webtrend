@@ -1,0 +1,92 @@
+<!-- product/day.phtml started -->
+<?
+local (%page_view, %prod_page_view)  ;
+local ($product) ;
+
+my ($sth,$hour,$product,$all_pageview) ;
+local $tmp ;
+
+$sth = $dbh_log->prepare ( <<_SQL_ )  or die "prepare in product/day.phtml error!" ;
+select HOUR(date_hour) as hour ,sum(num_chinaren) from pageview_tb 
+where date_hour >= '$day_year-$day_month-$day_day' 
+and date_hour < DATE_ADD('$day_year-$day_month-$day_day',INTERVAL 1 DAY)
+group by hour 
+order by hour desc 
+_SQL_
+#and product REGEXP '$regexp_product{$remote_user}' 
+
+$all_pageview = 0 ;
+$sth->execute or die "execute in product/day.phtml error!" ;
+while ( ($hour,$tmp)=$sth->fetchrow_array ){
+	$page_view{$hour}=$tmp ;
+	$all_pageview += $tmp ;
+}
+$sth->finish ;
+
+foreach $hour ( reverse sort {$a<=>$b} keys %page_view ){
+	$sth = $dbh_log->prepare ( <<_SQL_ )  or die "prepare in product/day.phtml error!" ;
+select product ,sum(num_chinaren) from pageview_tb 
+where date_hour >= '$day_year-$day_month-$day_day $hour' 
+and date_hour < DATE_ADD('$day_year-$day_month-$day_day $hour',INTERVAL 1 HOUR)
+group by product
+_SQL_
+#and product REGEXP '$regexp_product{$remote_user}'
+	$sth->execute or die "execute group by host_name error in product/day.phtml" ;
+	while ( ($product,$tmp)=$sth->fetchrow_array ){
+		$prod_page_view{$hour}{($Host2Name{$product})} = $tmp ;
+	}
+	$sth->finish ;
+} 
+!>
+
+<table border=1 cellspacing="0" cellpadding="0" bordercolor=606000>
+<tr><td> 
+
+<table bgcolor=fff8e0 class=small width=620 cellspacing=0 cellpedding=0 border=2 bordercolor=606000>
+<tr> 
+    <td colspan=3 bgcolor=606000><I><B><font size=+1 color=ffe080>1. 
+	    </font></B></I><font color=ffffff>
+		日 24 小 时 各 个 产 品 PageView 
+		<font color=red> 总PageView: <b>
+	<?=(($remote_user=~/logadm|all/)?$all_pageview:'不详')!>
+	</b> 页</font> ( <?=$day_year!>年<?=$day_month!>月<?=$day_day!>日 )</font>
+	</td>
+</tr>
+
+<!-- foreach 1 started -->
+<?
+foreach $hour ( reverse sort {$a<=>$b} keys %page_view )
+{
+!>
+<tr bgcolor=fffff8> 
+	<td align=right> <?=$hour!> 点: <br>
+		<font color=red size=-1><?=$remote_user eq 'logadm'?$page_view{$hour}.'页':undef!></font></td>
+    	<td> 
+		<!-- table per hour -->
+            <table cellspacing=0 cellpadding=0 border=0 width=100%>
+	<!-- foreach 2 started -->
+	<? foreach $product ( reverse sort {$prod_page_view{$hour}{$a} <=> $prod_page_view{$hour}{$b}} keys %{$prod_page_view{$hour}} ) { 
+	next if ( ( $use_filter && ($product ne $filter) ) ) ;
+	next unless ( $Name2Host{$product} =~ /$regexp_product{$remote_user}/ ) ;
+	!>
+            <tr height=7>
+                <td><img src="/images/bar3.gif" width="<?=int(1+($page_view{$hour}==0?0:($bar_length*($prod_page_view{$hour}{$product})/$page_view{$hour})))!>" height="7" border=0><font size=2 color=208000> 
+                  [<?=$product!>]<?=$prod_page_view{$hour}{$product}!> 页</font> <font size=2 color=ff0000> <?=$page_view{$hour}==0?0:substr(100*$prod_page_view{$hour}{$product}/$page_view{$hour},0,4)!>%</font></td>
+             </tr>
+	<? } !>
+	<!-- foreach 2 ended -->
+		<!-- table per hour ended -->
+          </td>
+        </tr>
+	</table>
+</td></tr>
+<?
+}
+!>
+<!-- foreach 1 end -->
+
+</table>
+
+</td></tr>
+</table>
+<!-- product/day.phtml ended -->

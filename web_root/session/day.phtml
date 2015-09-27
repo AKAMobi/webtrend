@@ -1,0 +1,82 @@
+<!-- product/day.phtml started -->
+<?
+local (%page_view)  ;
+local ($product) ;
+
+my ($sth,$hour,$product,$all_pageview) ;
+local $tmp ;
+
+$sth = $dbh_log->prepare ( <<_SQL_ )  or die "prepare in product/day.phtml error!" ;
+select HOUR(date_time) as hour ,count(*) from access_log_tb 
+where date_time >= '$day_year-$day_month-$day_day' and
+date_time < DATE_ADD('$day_year-$day_month-$day_day',INTERVAL 1 DAY)
+group by hour 
+order by hour desc 
+_SQL_
+
+$all_pageview = 0 ;
+$sth->execute or die "execute in product/day.phtml error!" ;
+while ( ($hour,$tmp)=$sth->fetchrow_array ){
+	$page_view{$hour}=$tmp ;
+	$all_pageview += $tmp ;
+}
+$sth->finish ;
+
+$sth = $dbh_log->prepare ( <<_SQL_ )  or die "prepare in day.phtml error!" ;
+select HOUR(FROM_UNIXTIME(unixtime)) as hour ,avg(online_num) from online_user_tb 
+where unixtime >= UNIX_TIMESTAMP('$day_year-$day_month-$day_day') 
+and unixtime < UNIX_TIMESTAMP(DATE_ADD('$day_year-$day_month-$day_day',INTERVAL 1 DAY))
+and type='www'
+group by hour 
+order by hour desc 
+_SQL_
+$sth->execute or die "execute error in day.phtml" ;
+
+my %user_counter; 
+my $all_users ;
+$all_users = 0 ;
+while ( ($hour,$tmp)=$sth->fetchrow_array )
+{
+	$user_counter{$hour} = $tmp ;
+	$all_users += $tmp ;
+}
+$sth->finish ;
+!>
+
+<table border=1 cellspacing="0" cellpadding="0" bordercolor=606000>
+<tr><td> 
+
+<table bgcolor=fff8e0 class=small width=620 cellspacing=0 cellpedding=0 border=0 bordercolor=606000>
+<tr> 
+    <td colspan=3 bgcolor=606000><I><B><font size=+1 color=ffe080>1. 
+	    </font></B></I><font color=ffffff> 日 产 品 产 品 综 合 PageView 
+		<font color=red> 平 均 Session PageView: <b><?=$all_pageview/$all_users!></b> 页</font> ( <?=$day_year!>年<?=$day_month!>月<?=$day_day!>日 )</font>
+	</td>
+</tr>
+
+<!-- foreach 1 started -->
+<?
+my $bgcolor='fffff8' ;
+foreach $hour ( reverse sort {$a<=>$b} keys %page_view )
+{
+!>
+<tr bgcolor=<?=$bgcolor!>> 
+	<td align=right> <?=$hour!> 点: </td>
+    	<td> 
+                <img src="/images/bar3.gif" width="<?=int(1+($all_pageview==0?0:($bar_length*($page_view{$hour}/$all_pageview))))!>" height="7" border=0><font size=2 color=208000> 
+                  <?=$page_view{$hour}/$user_counter{$hour}!> 页</font> <font size=2 color=ff0000> <?=$all_pageview==0?0:substr(100*$page_view{$hour}/$all_pageview,0,4)!>%</font>
+</td></tr>
+		<? if ($bgcolor eq 'fffff8'){
+				$bgcolor='f0f0e0' ;
+			}else{
+				$bgcolor='fffff8' ;
+			}
+}
+!>
+<!-- foreach 1 end -->
+
+</table>
+
+</td></tr>
+</table>
+<!-- product/day.phtml ended -->
